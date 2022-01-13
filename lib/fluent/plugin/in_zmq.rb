@@ -41,7 +41,7 @@ class ZMQInput < Input
 
   def start
     $log.debug "listening http on #{@bind}:#{@port}"
-    @zmq = ZMQ::Context.new
+    @zmq = ZMQ::Context.create(1)
     @server = @zmq.socket(ZMQ::PULL)
     @server.bind("tcp://" + @bind + ":" + @port.to_s)
     @thread = Thread.new(&method(:run))
@@ -55,10 +55,10 @@ class ZMQInput < Input
   def run
     begin
       while true
-        ret = ZMQ::select([@server])
-        ret[0].each do |sock|
-          msg = sock.recv
-          on_message(MessagePack.unpack(msg))
+        rc = 0
+        while ZMQ::Util.resultcode_ok?(rc)
+          rc = @server.recv_string(message)
+          on_message(MessagePack.unpack(message))
         end
       end
     rescue
