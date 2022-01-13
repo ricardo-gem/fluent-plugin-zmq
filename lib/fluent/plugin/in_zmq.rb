@@ -31,7 +31,7 @@ class ZMQInput < Input
   #config_param :server_type,     :string,  :default => 'nonblocking'
 
   def initialize
-    require 'zmq'
+    require 'ffi-rzmq'
     super
   end
 
